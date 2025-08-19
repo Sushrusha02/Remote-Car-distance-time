@@ -1,36 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Position of a Remote-Controlled Car</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Remote Car Distance-Time Graph</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h2>Position of a Remote-Controlled Car</h2>
-  <p>Car moves towards and away from Emile 🧍‍♀️ while the graph tracks distance over time.</p>
+  <h1>Position of a Remote Controlled Car</h1>
+  <p>Car moves towards and away from Emile while graph tracks distance and time.</p>
 
+  <canvas id="graph" width="400" height="300"></canvas>
 
-  <div class="graph-container">
-    <canvas id="graphCanvas" width="640" height="360"></canvas>
-    <div id="marker"></div>
-    <div id="markerLabel">(0,0)</div>
-  </div>
-
-  
-  <div class="scene">
+  <div id="road">
     <div id="emile">🧍‍♀️</div>
-    <div id="road">
-      <div id="car">🚕</div>
-      <div id="carLabel">d = 0</div>
-    </div>
+    <div id="car">🚕</div>
   </div>
 
-  
   <div class="controls">
     <button id="playBtn">▶ Play</button>
     <button id="pauseBtn">⏸ Pause</button>
-    <button id="resetBtn">🔄 Reset</button>
+    <button id="resetBtn">⏹ Reset</button>
+    <button id="newGraphBtn">🔄 New Graph</button>
   </div>
 
   <script src="script.js"></script>
