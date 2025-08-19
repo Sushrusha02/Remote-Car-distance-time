@@ -1,143 +1,172 @@
-const canvas = document.getElementById("graphCanvas");
-const ctx = canvas.getContext("2d");
-const car = document.getElementById("car");
-const carLabel = document.getElementById("carLabel");
-const marker = document.getElementById("marker");
-const markerLabel = document.getElementById("markerLabel");
-
-const dataPoints = [
-  { t: 0, d: 0 },
-  { t: 1, d: 2 },
-  { t: 2, d: 2 },
-  { t: 3, d: 4 },
-  { t: 4, d: 0 },
-  { t: 6, d: 0 },
-  { t: 7, d: 5 },
-  { t: 8, d: 5 },
-  { t: 9, d: 0 }
+const graphSets = [
+  [
+    { t: 0, d: 0 },
+    { t: 1, d: 2 },
+    { t: 2, d: 2 },
+    { t: 3, d: 4 },
+    { t: 4, d: 0 },
+    { t: 6, d: 0 },
+    { t: 7, d: 5 },
+    { t: 8, d: 5 },
+    { t: 9, d: 0 }
+  ],
+  [
+    { t: 0, d: 0 },
+    { t: 1, d: 3 },
+    { t: 2, d: 5 },
+    { t: 3, d: 3 },
+    { t: 4, d: 0 },
+    { t: 6, d: 0 },
+    { t: 7, d: 4 },
+    { t: 8, d: 0 }
+  ],
+  [
+    { t: 0, d: 0 },
+    { t: 2, d: 2 },
+    { t: 3, d: 5 },
+    { t: 4, d: 0 },
+    { t: 5, d: 0 },
+    { t: 6, d: 2 },
+    { t: 8, d: 0 }
+  ]
 ];
 
-let index = 0;
-let playing = false;
-let animationId = null;
+let currentGraphIndex = 0;
+let dataPoints = graphSets[currentGraphIndex];
 
-const originX = 60, originY = canvas.height - 50;
-const xScale = 60, yScale = 40;
+let currentTime = 0;
+let isPlaying = false;
+let totalTime = dataPoints[dataPoints.length - 1].t;
 
-function drawAxes() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+const canvas = document.getElementById("graph");
+const ctx = canvas.getContext("2d");
+const car = document.getElementById("car");
 
-  ctx.beginPath();
-  ctx.moveTo(originX, 20);
-  ctx.lineTo(originX, originY);
-  ctx.lineTo(canvas.width - 20, originY);
-  ctx.strokeStyle = "#000";
-  ctx.lineWidth = 2;
-  ctx.stroke();
 
-  ctx.fillStyle = "#000";
-  ctx.font = "12px Arial";
-
-  for (let t = 0; t <= 9; t++) {
-    const x = originX + t * xScale;
-    ctx.beginPath();
-    ctx.moveTo(x, originY);
-    ctx.lineTo(x, originY + 6);
-    ctx.stroke();
-    ctx.fillText(t, x - 3, originY + 20);
+function getInterpolatedPoint(time) {
+  for (let i = 0; i < dataPoints.length - 1; i++) {
+    const p1 = dataPoints[i];
+    const p2 = dataPoints[i + 1];
+    if (time >= p1.t && time <= p2.t) {
+      const ratio = (time - p1.t) / (p2.t - p1.t);
+      const d = p1.d + ratio * (p2.d - p1.d);
+      return { t: time, d: d };
+    }
   }
-
-  for (let d = 0; d <= 6; d++) {
-    const y = originY - d * yScale;
-    ctx.beginPath();
-    ctx.moveTo(originX - 6, y);
-    ctx.lineTo(originX, y);
-    ctx.stroke();
-    if (d > 0) ctx.fillText(d, originX - 20, y + 4);
-  }
-
-  ctx.fillText("Distance", 15, 25);
-  ctx.fillText("Time →", canvas.width - 70, originY + 25);
+  return dataPoints[dataPoints.length - 1];
 }
 
 function drawGraph() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Axes
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "black";
+
   ctx.beginPath();
-  ctx.moveTo(originX + dataPoints[0].t * xScale, originY - dataPoints[0].d * yScale);
+  ctx.moveTo(50, 250);
+  ctx.lineTo(350, 250); // X-axis
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(50, 250);
+  ctx.lineTo(50, 25); // Y-axis
+  ctx.stroke();
+
+  //labels
+  ctx.font = "14px Arial";
+  ctx.fillStyle = "black";
+  ctx.fillText("Time (s)", 180, 270); //x axis
+  ctx.save();
+  ctx.translate(15, 150); //rotate for y axis
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText("Distance (m)", 0, 0);
+  ctx.restore();
+
+  // Graph line
+  ctx.beginPath();
+  ctx.moveTo(50 + dataPoints[0].t * 30, 250 - dataPoints[0].d * 40);
   for (let i = 1; i < dataPoints.length; i++) {
-    ctx.lineTo(originX + dataPoints[i].t * xScale, originY - dataPoints[i].d * yScale);
+    ctx.lineTo(50 + dataPoints[i].t * 30, 250 - dataPoints[i].d * 40);
   }
   ctx.strokeStyle = "blue";
-  ctx.lineWidth = 2;
   ctx.stroke();
+
+  // Current point
+  let { t, d } = getInterpolatedPoint(currentTime);
+
+  // 🔴 Red point
+  let xAxisX = 50 + t * 30;
+  let xAxisY = 250;
+  ctx.beginPath();
+  ctx.arc(xAxisX, xAxisY, 5, 0, 2 * Math.PI);
+  ctx.fillStyle = "red";
+  ctx.fill();
+
+  // ⚫ Black point
+  let graphX = 50 + t * 30;
+  let graphY = 250 - d * 40;
+  ctx.beginPath();
+  ctx.arc(graphX, graphY, 5, 0, 2 * Math.PI);
+  ctx.fillStyle = "black";
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(xAxisX, xAxisY);
+  ctx.lineTo(graphX, graphY);
+  ctx.strokeStyle = "gray";
+  ctx.setLineDash([4, 2]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
 }
 
-function animateCar() {
-  if (index >= dataPoints.length - 1) {
-    playing = false;
-    return;
-  }
-  const p1 = dataPoints[index];
-  const p2 = dataPoints[index + 1];
+function updateCar() {
+  let { d } = getInterpolatedPoint(currentTime);
+  car.style.left = (100 + d * 60) + "px";
+}
 
-  let step = 0;
-  function move() {
-    if (!playing) return;
-    if (step > 1) {
-      index++;
-      animateCar();
-      return;
+function animate() {
+  if (isPlaying) {
+    currentTime += 0.02;
+    if (currentTime > totalTime) {
+      currentTime = totalTime;
+      isPlaying = false;
     }
-
-    let t = p1.t + (p2.t - p1.t) * step;
-    let d = p1.d + (p2.d - p1.d) * step;
-
-    car.style.transform = `translateX(${d * 60}px)`;
-    carLabel.style.left = `${car.offsetLeft + 20}px`;
-    carLabel.innerText = `d = ${d.toFixed(1)}`;
-
-    let mx = originX + t * xScale;
-    let my = originY - d * yScale;
-    marker.style.left = mx + "px";
-    marker.style.top = my + "px";
-    markerLabel.style.left = mx + "px";
-    markerLabel.style.top = my + "px";
-    markerLabel.innerText = `(${t.toFixed(1)}, ${d.toFixed(1)})`;
-
-    step += 0.02;
-    animationId = requestAnimationFrame(move);
+    drawGraph();
+    updateCar();
+    requestAnimationFrame(animate);
   }
-  move();
 }
 
-document.getElementById("playBtn").addEventListener("click", () => {
-  if (!playing) {
-    playing = true;
-    animateCar();
+document.getElementById("playBtn").onclick = () => {
+  if (!isPlaying && currentTime < totalTime) {
+    isPlaying = true;
+    animate();
   }
-});
+};
 
-document.getElementById("pauseBtn").addEventListener("click", () => {
-  playing = false;
-  cancelAnimationFrame(animationId);
-});
+document.getElementById("pauseBtn").onclick = () => {
+  isPlaying = false;
+};
 
-document.getElementById("resetBtn").addEventListener("click", () => {
-  playing = false;
-  cancelAnimationFrame(animationId);
-  index = 0;
-  car.style.transform = "translateX(0)";
-  carLabel.style.left = "0px";
-  carLabel.innerText = "d = 0";
-  marker.style.left = originX + "px";
-  marker.style.top = originY + "px";
-  markerLabel.style.left = originX + "px";
-  markerLabel.style.top = originY + "px";
-  markerLabel.innerText = "(0,0)";
-});
+document.getElementById("resetBtn").onclick = () => {
+  isPlaying = false;
+  currentTime = 0;
+  drawGraph();
+  updateCar();
+};
 
-drawAxes();
+document.getElementById("newGraphBtn").onclick = () => {
+  isPlaying = false;
+  currentTime = 0;
+  currentGraphIndex = (currentGraphIndex + 1) % graphSets.length;
+  dataPoints = graphSets[currentGraphIndex];
+  totalTime = dataPoints[dataPoints.length - 1].t;
+  drawGraph();
+  updateCar();
+};
+
+// Initial
 drawGraph();
-marker.style.left = originX + "px";
-marker.style.top = originY + "px";
-markerLabel.style.left = originX + "px";
-markerLabel.style.top = originY + "px";
+updateCar();
