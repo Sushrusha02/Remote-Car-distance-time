@@ -7,8 +7,11 @@ The car's motion on the road and the point on the graph are synchonized in real 
 -🧍‍♀️ Emile fixed on the left side of the road
 -🚕 Car moves according to predefined distance-time data points
 -📉 Distance-Time graph using HTML5 Canvas
--🔴 Moving marker on the graph to show (t, d) position
+-🔴 pointer moves along the time axis.
+-⚫ pointer moves on the graph curve, showing car's distance
+- A connector line between x-axis pointer and y-axis pointer.
 -▶⏸🔄 Controls: Play, Pause, Reset
+- New Graph button load different graphs(predefined).
 
 ⚙Tech Stacks
 - HTML -> Page structure
